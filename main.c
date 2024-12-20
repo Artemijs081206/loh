@@ -1,11 +1,9 @@
 #include <stdio.h>
+#include "sort.h"
+#include "students.h"
+#include "helpers.h"
 
-struct students {
-    int age;
-    char name[50];
-    char sname[50];
-    char class[50];
-};
+char enterclass[50];
 
 struct students studenti[] = {
     {13, "Artem", "Stanko", "px-23"},
@@ -15,7 +13,35 @@ struct students studenti[] = {
     {52, "Timur", "FamilijuNeznaju", "px-24"}
 };
 
-char enterclass[50];
+void save_to_file(struct students studenti[], int n) {
+    FILE *fp = fopen("bd.txt", "w");
+    if (fp == NULL) {
+        printf("Error opening file for writing.\n");
+        return;
+    }
+
+    for (int i = 0; i < n; i++) {
+        fprintf(fp, "%d %s %s %s\n", studenti[i].age, studenti[i].name, studenti[i].sname, studenti[i].class);
+    }
+    
+    fclose(fp);
+}
+
+int load_from_file(struct students studenti[]) {
+    FILE *fp = fopen("bd.txt", "r");
+    if (fp == NULL) {
+        printf("File not found. Starting with an empty list.\n");
+        return 0;
+    }
+
+    int i = 0;
+    while (fscanf(fp, "%d %s %s %s", &studenti[i].age, studenti[i].name, studenti[i].sname, studenti[i].class) == 4) {
+        i++;
+    }
+    
+    fclose(fp);
+    return i;
+}
 
 int compare_names(const char* name1, const char* name2) {
     int i = 0;
@@ -121,80 +147,6 @@ void delite(int* n){
     }
 }
 
-
-void sort_by_name(struct students studenti[], int n, int ic) {
-    for (int i = 0; i < n - 1; i++) {
-        for (int j = 0; j < n - i - 1; j++) {
-            if (compare_names(studenti[j].name, studenti[j + 1].name) > 0) {
-                struct students temp = studenti[j];
-                studenti[j] = studenti[j + 1];
-                studenti[j + 1] = temp;
-            }
-        }
-    }
-    if (ic == 1){
-        out_class(n);
-    }else{
-        out_clasic(n);
-    }
-}
-
-void sort_by_sname(struct students studenti[], int n, int ic) {
-    for (int i = 0; i < n - 1; i++) {
-        for (int j = 0; j < n - i - 1; j++) {
-            if (compare_names(studenti[j].sname, studenti[j + 1].sname) > 0) {
-                struct students temp = studenti[j];
-                studenti[j] = studenti[j + 1];
-                studenti[j + 1] = temp;
-            }
-        }
-    }
-    
-    if (ic == 1){
-        out_class(n);
-    }
-    else{
-        out_clasic(n);
-    }
-    
-}
-
-void sort_by_age(struct students studenti[], int n, int ic) {
-    for (int i = 0; i < n - 1; i++) {
-        for (int j = 0; j < n - 1; j++) {
-            if (studenti[j].age > studenti[j + 1].age) {
-                struct students temp = studenti[j];
-                studenti[j] = studenti[j + 1];
-                studenti[j + 1] = temp;
-            }
-        }
-    }
-    
-    if (ic == 1){
-        out_class(n);
-    }else{
-        out_clasic(n);
-    }
-}
-
-void sort_class(struct students studenti[], int n) {
-    int class_info = 1;
-    printf("Enter class: ");
-    scanf("%s", enterclass);
-    printf(enterclass);
-    int num;
-    printf("\nSort Name: 1\nSort Sname: 2\nSort Age: 3\n");
-    scanf("%d", &num);
-
-    if (num == 1) {
-        sort_by_name(studenti, n, class_info);
-    } else if (num == 2) {
-        sort_by_sname(studenti, n, class_info);
-    } else if (num == 3) {
-        sort_by_age(studenti, n, class_info);
-    }
-}
-
 void create_new(int* n){
     int age;
     char name[50];
@@ -218,13 +170,13 @@ void create_new(int* n){
 }
 
 int main() {
-    int n = sizeof(studenti) / sizeof(studenti[0]);
-    for(;;){
-    
+    int n = load_from_file(studenti);  // Load data from file at the start
+
+    for (;;) {
         int num;
         printf("\n\nSort Name:    1\nSort Sname:   2\nSort Age:     3\nSort Class:   4\nCreate New:   5\nChange:       6\nDelite:       7\nEXIT:         8\n");
         scanf("%d", &num);
-    
+
         if (num == 1) {
             sort_by_name(studenti, n, 0);
         } else if (num == 2) {
@@ -233,15 +185,20 @@ int main() {
             sort_by_age(studenti, n, 0);
         } else if (num == 4) {
             sort_class(studenti, n);
-        } else if (num == 5){
+        } else if (num == 5) {
             create_new(&n);
-        } else if (num == 6){
+            save_to_file(studenti, n);
+        } else if (num == 6) {
             change(n);
-        }else if (num == 7){
+            save_to_file(studenti, n);
+        } else if (num == 7){
             delite(&n);
-        }else if (num == 8){
+            save_to_file(studenti, n);
+        } else if (num == 8) {
+            save_to_file(studenti, n);
             return 0;
         }
     }
+
     return 0;
 }
